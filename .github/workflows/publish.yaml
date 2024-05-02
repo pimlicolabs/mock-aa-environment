@@ -13,9 +13,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - dockerfile: ./mock-alto-bundler/Dockerfile
+          - context: ./mock-alto-bundler
+            dockerfile: ./mock-alto-bundler/Dockerfile
             image: ghcr.io/pimlicolabs/mock-alto-bundler
-          - dockerfile: ./mock-verifying-paymaster/Dockerfile
+          - context: ./mock-verifying-paymaster
+            dockerfile: ./mock-verifying-paymaster/Dockerfile
             image: ghcr.io/pimlicolabs/mock-verifying-paymaster
     permissions:
       contents: read
@@ -41,7 +43,7 @@ jobs:
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}

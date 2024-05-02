@@ -73,8 +73,8 @@ const client = createPublicClient({
 });
 
 const main = async () => {
-	if (process.env.FORKED_MODE) {
-		// skip deployments in forked mode
+	if (process.env.SKIP_DEPLOYMENTS) {
+		// used in fork mode to skip contract deployments
 		process.exit(0);
 	}
 

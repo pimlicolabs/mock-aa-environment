@@ -1,21 +1,21 @@
-# Production ready dockerfile that runs pnpm start
+# production ready dockerfile that runs pnpm start
 FROM node:20-alpine
 
-# Set working directory
+# set working directory
 WORKDIR /app
 
-# Install pnpm
+# install pnpm
 RUN npm install -g pnpm
 
-# Copy package.json
+# copy package.json
 COPY package.json ./
 
-# Copy source code
+# copy source code
 COPY ./src ./src
 
-# Install dependencies
+# install dependencies
 RUN pnpm fetch
 RUN pnpm install
 
-# Start app
+# start app
 ENTRYPOINT ["pnpm", "run", "start"]

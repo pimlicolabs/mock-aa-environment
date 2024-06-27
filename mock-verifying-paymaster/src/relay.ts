@@ -105,7 +105,7 @@ const handleMethodV06 = async (
 	}
 
 	const validAfter = 0;
-	const validUntil = Math.floor(Date.now() / 1000) + 6000;
+	const validUntil = 0;
 	op.paymasterAndData = concat([
 		verifyingPaymasterV06.address,
 		encodeAbiParameters(
@@ -208,7 +208,7 @@ const handleMethodV07 = async (
 	}
 
 	const validAfter = 0;
-	const validUntil = Math.floor(Date.now() / 1000) + 6000;
+	const validUntil = 0;
 	op.paymasterData = concat([
 		encodeAbiParameters(
 			[

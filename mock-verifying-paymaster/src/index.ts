@@ -3,8 +3,7 @@ import Fastify from "fastify";
 import { ENTRYPOINT_ADDRESS_V06, ENTRYPOINT_ADDRESS_V07 } from "permissionless";
 import { createPimlicoBundlerClient } from "permissionless/clients/pimlico";
 import { http } from "viem";
-import { foundry } from "viem/chains";
-import { getAnvilWalletClient } from "./helpers/utils";
+import { getAnvilWalletClient, getChain } from "./helpers/utils";
 import {
 	setupVerifyingPaymasterV06,
 	setupVerifyingPaymasterV07,
@@ -12,18 +11,18 @@ import {
 import { createRpcHandler } from "./relay";
 
 const main = async () => {
-	const walletClient = getAnvilWalletClient();
+	const walletClient = await getAnvilWalletClient();
 	const verifyingPaymasterV07 = await setupVerifyingPaymasterV07(walletClient);
 	const verifyingPaymasterV06 = await setupVerifyingPaymasterV06(walletClient);
 
 	const altoBundlerV07 = createPimlicoBundlerClient({
-		chain: foundry,
+		chain: await getChain(),
 		transport: http(process.env.ALTO_RPC),
 		entryPoint: ENTRYPOINT_ADDRESS_V07,
 	});
 
 	const altoBundlerV06 = createPimlicoBundlerClient({
-		chain: foundry,
+		chain: await getChain(),
 		transport: http(process.env.ALTO_RPC),
 		entryPoint: ENTRYPOINT_ADDRESS_V06,
 	});

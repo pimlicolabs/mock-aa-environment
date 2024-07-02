@@ -23,8 +23,10 @@ import {
 	KERNEL_V06_FACTORY_CREATECALL,
 	KERNEL_V07_ACCOUNT_V3_LOGIC_CREATECALL,
 	KERNEL_V07_ECDSA_VALIDATOR_V3_CREATECALL,
-	KERNEL_V07_FACTORY_CREATECALL,
+	KERNEL_V07_FACTORY_V3_CREATECALL,
 	KERNEL_V07_META_FACTORY_CREATECALL,
+	KERNEL_V07_ACCOUNT_V3_1_LOGIC_CREATECALL,
+	KERNEL_V07_FACTORY_V3_1_CREATECALL,
 	LIGHT_ACCOUNT_FACTORY_V110_CREATECALL,
 	SAFE_MULTI_SEND_CALL_ONLY_CREATECALL,
 	SAFE_MULTI_SEND_CREATECALL,
@@ -75,6 +77,7 @@ const client = createPublicClient({
 
 const main = async () => {
 	if (process.env.SKIP_DEPLOYMENTS) {
+		console.log("Skipping Deployments...")
 		// set nonces to match onchain nonces
 		const promises: any = [];
 
@@ -313,11 +316,11 @@ const main = async () => {
 	walletClient
 		.sendTransaction({
 			to: DETERMINISTIC_DEPLOYER,
-			data: KERNEL_V07_FACTORY_CREATECALL,
+			data: KERNEL_V07_FACTORY_V3_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
 		})
-		.then(() => console.log("[KERNEL] Deploying V0.7 Factory"));
+		.then(() => console.log("[KERNEL] Deploying V0.7 Factory V3"));
 
 	walletClient
 		.sendTransaction({
@@ -345,6 +348,24 @@ const main = async () => {
 			nonce: nonce++,
 		})
 		.then(() => console.log("[KERNEL] Deploying V0.7 META FACTORY"));
+
+	walletClient
+			.sendTransaction({
+				to: DETERMINISTIC_DEPLOYER,
+				data: KERNEL_V07_ACCOUNT_V3_1_LOGIC_CREATECALL,
+				gas: 15_000_000n,
+				nonce: nonce++,
+			})
+			.then(() => console.log("[KERNEL] Deploying V0.7 ACCOUNT V3_1 LOGIC "));
+
+	walletClient
+		.sendTransaction({
+			to: DETERMINISTIC_DEPLOYER,
+			data: KERNEL_V07_FACTORY_V3_1_CREATECALL,
+			gas: 15_000_000n,
+			nonce: nonce++,
+		})
+		.then(() => console.log("[KERNEL] Deploying V0.7 Factory V3_1"));
 
 	walletClient
 		.sendTransaction({
@@ -386,14 +407,21 @@ const main = async () => {
 	// register 0x6723b44Abeec4E71eBE3232BD5B455805baDD22f
 	await sendTransaction(walletClient, {
 		account: kernelFactoryOwner,
-		to: "0xd703aaE79538628d27099B8c4f621bE4CCd142d5" /* kernel factory v0.7 */,
+		to: "0xd703aaE79538628d27099B8c4f621bE4CCd142d5" /* kernel factory v0.7 v3*/,
 		data: "0x6e7dbabb0000000000000000000000006723b44abeec4e71ebe3232bd5b455805badd22f0000000000000000000000000000000000000000000000000000000000000001",
 	});
 
 	await sendTransaction(walletClient, {
 		account: kernelFactoryOwner,
-		to: "0xd703aaE79538628d27099B8c4f621bE4CCd142d5" /* kernel factory v0.7 */,
+		to: "0xd703aaE79538628d27099B8c4f621bE4CCd142d5" /* Stake 0.1 eth	in the entry point */,
 		data: "0xc7e55f3e0000000000000000000000000000000071727de22e5e9d8baf0edac6f37da0320000000000000000000000000000000000000000000000000000000000015180",
+	});
+
+	// register 0xaac5D4240AF87249B3f71BC8E4A2cae074A3E419
+	await sendTransaction(walletClient, {
+		account: kernelFactoryOwner,
+		to: "0xd703aaE79538628d27099B8c4f621bE4CCd142d5" /* kernel factory v0.7 v3.1 */,
+		data: "0x6e7dbabb000000000000000000000000aac5d4240af87249b3f71bc8e4a2cae074a3e4190000000000000000000000000000000000000000000000000000000000000001",
 	});
 
 	await anvilClient.stopImpersonatingAccount({
@@ -450,6 +478,9 @@ const main = async () => {
 		"0x94F097E1ebEB4ecA3AAE54cabb08905B239A7D27", // Kernel v0.3.0 Account Logic
 		"0x6723b44Abeec4E71eBE3232BD5B455805baDD22f", // Kernel v0.3.0 Factory
 		"0xd703aaE79538628d27099B8c4f621bE4CCd142d5", // Kernel v0.3.0 Meta Factory
+		"0xBAC849bB641841b44E965fB01A4Bf5F074f84b4D", // Kernel v0.3.1 Account Logic
+		"0xaac5D4240AF87249B3f71BC8E4A2cae074A3E419", // Kernel v0.3.1 Factory
+		"0xd703aaE79538628d27099B8c4f621bE4CCd142d5", // Kernel v0.3.1 Meta Factory
 		"0x00004EC70002a32400f8ae005A26081065620D20", // LightAccountFactory v1.1.0
 		"0xae8c656ad28F2B59a196AB61815C16A0AE1c3cba", // LightAccount v1.1.0 implementation
 	]);

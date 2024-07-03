@@ -1,0 +1,27 @@
+services:
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:nightly-c4a984fbf2c48b793c8cd53af84f56009dd1070c
+    ports: [ "8545:8545" ]
+    entrypoint: [ "anvil", "--host", "0.0.0.0", "--block-time", "0.1", "--silent"]
+    # Uncomment this if you want to use a fork
+    #entrypoint: [ "anvil", "--chain-id", "1", "--fork-url", "http://your_node:845", "--host", "0.0.0.0", "--block-time", "0.1", "--silent"]
+    platform: linux/amd64/v8
+
+  mock-paymaster:
+    build:
+      context: ./mock-verifying-paymaster
+      dockerfile: Dockerfile
+    ports: [ "3000:3000" ]
+    environment:
+      - ALTO_RPC=http://alto:4337
+      - ANVIL_RPC=http://anvil:8545
+
+  alto:
+    build:
+      context: ./mock-alto-bundler
+      dockerfile: Dockerfile
+    ports: [ "4337:4337" ]
+    environment:
+      - ANVIL_RPC=http://anvil:8545
+      # Uncomment this if you want to use the forked version
+      #- SKIP_DEPLOYMENTS=true

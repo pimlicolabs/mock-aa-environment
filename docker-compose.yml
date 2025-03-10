@@ -6,6 +6,13 @@ services:
     # Uncomment this if you want to use a fork
     #entrypoint: [ "anvil", "--chain-id", "1", "--fork-url", "http://your_node:845", "--host", "0.0.0.0", "--block-time", "0.1", "--silent"]
     platform: linux/amd64/v8
+    healthcheck:
+      test: ["CMD-SHELL", "cast rpc web3_clientVersion | grep -c anvil > /dev/null "]
+      start_interval: 250ms
+      start_period: 10s
+      interval: 30s
+      timeout: 5s
+      retries: 50
 
   mock-paymaster:
     build:
@@ -15,13 +22,34 @@ services:
     environment:
       - ALTO_RPC=http://alto:4337
       - ANVIL_RPC=http://anvil:8545
+    depends_on:
+      anvil:
+        condition: service_healthy
+      contract-deployer:
+        condition: service_completed_successfully
 
   alto:
-    build:
-      context: ./mock-alto-bundler
-      dockerfile: Dockerfile
+    build: https://github.com/pimlicolabs/alto.git
     ports: [ "4337:4337" ]
+    environment:
+      - ANVIL_RPC=http://anvil:8545
+    depends_on:
+      anvil:
+        condition: service_healthy
+      contract-deployer:
+        condition: service_completed_successfully
+    volumes:
+      - ./mock-alto-bundler/alto-config.json:/app/alto-config.json
+    entrypoint: ["node", "src/lib/cli/alto.js", "run", "--config", "/app/alto-config.json"]
+
+  contract-deployer:
+    build:
+      context: ./mock-contract-deployer
+      dockerfile: Dockerfile
     environment:
       - ANVIL_RPC=http://anvil:8545
       # Uncomment this if you want to use the forked version
       #- SKIP_DEPLOYMENTS=true
+    depends_on:
+      anvil:
+        condition: service_healthy

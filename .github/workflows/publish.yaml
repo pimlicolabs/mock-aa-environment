@@ -11,9 +11,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - context: ./mock-alto-bundler
-            dockerfile: ./mock-alto-bundler/Dockerfile
-            image: ghcr.io/pimlicolabs/mock-alto-bundler
+          - context: ./mock-contract-deployer
+            dockerfile: ./mock-contract-deployer/Dockerfile
+            image: ghcr.io/pimlicolabs/mock-contract-deployer
           - context: ./mock-verifying-paymaster
             dockerfile: ./mock-verifying-paymaster/Dockerfile
             image: ghcr.io/pimlicolabs/mock-verifying-paymaster

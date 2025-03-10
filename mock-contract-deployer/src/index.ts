@@ -4,6 +4,7 @@ import {
 	createPublicClient,
 	createTestClient,
 	createWalletClient,
+	defineChain,
 	parseEther,
 } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
@@ -45,37 +46,66 @@ const DETERMINISTIC_DEPLOYER = "0x4e59b44847b379578588920ca78fbf26c0b4956c";
 const SAFE_SINGLETON_FACTORY = "0x914d7Fec6aaC8cd542e72Bca78B30650d45643d7";
 const BICONOMY_SINGLETON_FACTORY = "0x988C135a1049Ce61730724afD342fb7C56CD2776";
 
-const verifyDeployed = async (addresses: Address[]) => {
-	for (const address of addresses) {
-		const bytecode = await client.getBytecode({
-			address,
-		});
 
-		if (bytecode === undefined) {
-			console.log(`CONTRACT ${address} NOT DEPLOYED!!!`);
-			process.exit(1);
-		}
-	}
+async function getChain(): Promise<ReturnType<typeof defineChain>> {
+	const tempClient = createPublicClient({
+		transport: http(process.env.ANVIL_RPC),
+	});
+
+	const chain = defineChain({
+		id: await tempClient.getChainId(),
+		name: "chain",
+		nativeCurrency: {
+			name: "ETH",
+			symbol: "ETH",
+			decimals: 18,
+		},
+		rpcUrls: {
+			default: {
+				http: [],
+				webSocket: undefined,
+			},
+		},
+	});
+
+	return chain;
 };
 
-const walletClient = createWalletClient({
-	account: mnemonicToAccount(
-		"test test test test test test test test test test test junk",
-	),
-	chain: foundry,
-	transport: http(process.env.ANVIL_RPC),
-});
-
-const anvilClient = createTestClient({
-	transport: http(process.env.ANVIL_RPC),
-	mode: "anvil",
-});
-
-const client = createPublicClient({
-	transport: http(process.env.ANVIL_RPC),
-});
-
 const main = async () => {
+
+	const chain = await getChain();
+	const walletClient = createWalletClient({
+	  account: mnemonicToAccount(
+		"test test test test test test test test test test test junk",
+	  ),
+	  chain,
+	  transport: http(process.env.ANVIL_RPC),
+	});
+  
+	const anvilClient = createTestClient({
+	  transport: http(process.env.ANVIL_RPC),
+	  mode: "anvil",
+	  chain,
+	});
+  
+	const client = createPublicClient({
+	  transport: http(process.env.ANVIL_RPC),
+	  chain,
+	});
+  
+	const verifyDeployed = async (addresses: Address[]) => {
+	  for (const address of addresses) {
+		const bytecode = await client.getCode({
+		  address,
+		});
+  
+		if (bytecode === undefined) {
+		  console.log(`CONTRACT ${address} NOT DEPLOYED!!!`);
+		  process.exit(1);
+		}
+	  }
+	};
+
 	if (process.env.SKIP_DEPLOYMENTS) {
 		console.log("Skipping Deployments...")
 		// set nonces to match onchain nonces
@@ -123,6 +153,7 @@ const main = async () => {
 			data: ENTRY_POINT_V07_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[V0.7 CORE] Deploying EntryPoint"));
 
@@ -132,6 +163,7 @@ const main = async () => {
 			data: SIMPLE_ACCOUNT_FACTORY_V07_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[V0.7 CORE] Deploying SimpleAccountFactory"));
 
@@ -141,6 +173,7 @@ const main = async () => {
 			data: ENTRY_POINT_SIMULATIONS_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[V0.7 CORE] Deploying EntryPointSimulations"));
 
@@ -150,6 +183,7 @@ const main = async () => {
 			data: ENTRY_POINT_V06_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[V0.6 CORE] Deploying EntryPoint"));
 
@@ -159,6 +193,7 @@ const main = async () => {
 			data: SIMPLE_ACCOUNT_FACTORY_V06_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[V0.6 CORE] Deploying SimpleAccountFactory"));
 
@@ -168,6 +203,7 @@ const main = async () => {
 			data: SAFE_V06_MODULE_SETUP_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[SAFE V0.6] Deploying Safe Module Setup"));
 
@@ -177,6 +213,7 @@ const main = async () => {
 			data: SAFE_V06_MODULE_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[SAFE V0.6] Deploying Safe 4337 Module"));
 
@@ -186,6 +223,7 @@ const main = async () => {
 			data: SAFE_V07_MODULE_SETUP_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[SAFE V0.7] Deploying Safe Module Setup"));
 
@@ -195,6 +233,7 @@ const main = async () => {
 			data: SAFE_V07_MODULE_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[SAFE V0.7] Deploying Safe 4337 Module"));
 
@@ -211,6 +250,7 @@ const main = async () => {
 			data: SAFE_PROXY_FACTORY_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[SAFE] Deploying Safe Proxy Factory"));
 
@@ -220,6 +260,7 @@ const main = async () => {
 			data: SAFE_SINGLETON_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[SAFE] Deploying Safe Singleton"));
 
@@ -229,6 +270,7 @@ const main = async () => {
 			data: SAFE_MULTI_SEND_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[SAFE] Deploying Safe Multi Send"));
 
@@ -238,6 +280,7 @@ const main = async () => {
 			data: SAFE_MULTI_SEND_CALL_ONLY_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[SAFE] Deploying Safe Multi Send Call Only"));
 
@@ -254,6 +297,7 @@ const main = async () => {
 			data: BICONOMY_ECDSA_OWNERSHIP_REGISTRY_MOUDULE_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() =>
 			console.log("[BICONOMY] Deployed ECDSA Ownership Registry Module"),
@@ -265,6 +309,7 @@ const main = async () => {
 			data: BICONOMY_ACCOUNT_V2_LOGIC_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[BICONOMY] Deploying Account V0.2 Logic"));
 
@@ -274,6 +319,7 @@ const main = async () => {
 			data: BICONOMY_FACTORY_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[BICONOMY] Deploying Factory"));
 
@@ -283,6 +329,7 @@ const main = async () => {
 			data: BICONOMY_DEFAULT_FALLBACK_HANDLER_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[BICONOMY] Deploying Default Fallback Handler"));
 
@@ -292,6 +339,7 @@ const main = async () => {
 			data: KERNEL_V06_ECDSA_VALIDATOR_V2_2_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[KERNEL] Deploying V0.6 ECDSA Validator"));
 
@@ -301,6 +349,7 @@ const main = async () => {
 			data: KERNEL_V06_ACCOUNT_V2_2_LOGIC_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[KERNEL] Deploying V0.6 Account V2 Logic"));
 
@@ -310,6 +359,7 @@ const main = async () => {
 			data: KERNEL_V06_FACTORY_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[KERNEL] Deploying V0.6 Factory"));
 
@@ -319,6 +369,7 @@ const main = async () => {
 			data: KERNEL_V07_FACTORY_V3_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[KERNEL] Deploying V0.7 Factory V3"));
 
@@ -328,6 +379,7 @@ const main = async () => {
 			data: KERNEL_V07_ECDSA_VALIDATOR_V3_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[KERNEL] Deploying V0.7 ECDSA VALIDATOR"));
 
@@ -337,6 +389,7 @@ const main = async () => {
 			data: KERNEL_V07_ACCOUNT_V3_LOGIC_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[KERNEL] Deploying V0.7 ACCOUNT V3 LOGIC "));
 
@@ -346,6 +399,7 @@ const main = async () => {
 			data: KERNEL_V07_META_FACTORY_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[KERNEL] Deploying V0.7 META FACTORY"));
 
@@ -355,6 +409,7 @@ const main = async () => {
 				data: KERNEL_V07_ACCOUNT_V3_1_LOGIC_CREATECALL,
 				gas: 15_000_000n,
 				nonce: nonce++,
+				chain
 			})
 			.then(() => console.log("[KERNEL] Deploying V0.7 ACCOUNT V3_1 LOGIC "));
 
@@ -364,6 +419,7 @@ const main = async () => {
 			data: KERNEL_V07_FACTORY_V3_1_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() => console.log("[KERNEL] Deploying V0.7 Factory V3_1"));
 
@@ -373,6 +429,7 @@ const main = async () => {
 			data: LIGHT_ACCOUNT_FACTORY_V110_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
+			chain
 		})
 		.then(() =>
 			console.log("[LIGHT ACCOUNT] Deploying v1.1.0 LightAccount Factory"),
@@ -402,6 +459,7 @@ const main = async () => {
 		account: kernelFactoryOwner,
 		to: "0x5de4839a76cf55d0c90e2061ef4386d962E15ae3" /* kernel factory v0.6 */,
 		data: "0xbb30a9740000000000000000000000000da6a956b9488ed4dd761e59f52fdc6c8068e6b50000000000000000000000000000000000000000000000000000000000000001" /* setImplementation(address _implementation,bool _allow) */,
+		chain
 	});
 
 	// register 0x6723b44Abeec4E71eBE3232BD5B455805baDD22f
@@ -409,12 +467,14 @@ const main = async () => {
 		account: kernelFactoryOwner,
 		to: "0xd703aaE79538628d27099B8c4f621bE4CCd142d5" /* kernel factory v0.7 v3*/,
 		data: "0x6e7dbabb0000000000000000000000006723b44abeec4e71ebe3232bd5b455805badd22f0000000000000000000000000000000000000000000000000000000000000001",
+		chain
 	});
 
 	await sendTransaction(walletClient, {
 		account: kernelFactoryOwner,
 		to: "0xd703aaE79538628d27099B8c4f621bE4CCd142d5" /* Stake 0.1 eth	in the entry point */,
 		data: "0xc7e55f3e0000000000000000000000000000000071727de22e5e9d8baf0edac6f37da0320000000000000000000000000000000000000000000000000000000000015180",
+		chain
 	});
 
 	// register 0xaac5D4240AF87249B3f71BC8E4A2cae074A3E419
@@ -422,6 +482,7 @@ const main = async () => {
 		account: kernelFactoryOwner,
 		to: "0xd703aaE79538628d27099B8c4f621bE4CCd142d5" /* kernel factory v0.7 v3.1 */,
 		data: "0x6e7dbabb000000000000000000000000aac5d4240af87249b3f71bc8e4a2cae074a3e4190000000000000000000000000000000000000000000000000000000000000001",
+		chain
 	});
 
 	await anvilClient.stopImpersonatingAccount({
@@ -444,6 +505,7 @@ const main = async () => {
 		to: "0x0000000000400CdFef5E2714E63d8040b700BC24" /* light account v2.0.0 factory */,
 		data: "0xfbb1c3d40000000000000000000000000000000000000000000000000000000000015180000000000000000000000000000000000000000000000000016345785d8a0000",
 		value: parseEther("0.1"),
+		chain
 	});
 
 	await anvilClient.stopImpersonatingAccount({

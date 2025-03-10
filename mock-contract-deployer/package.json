@@ -1,0 +1,16 @@
+{
+    "name": "contract-deployer",
+    "private": true,
+    "scripts": {
+        "start": "pnpm run start:deploy-contracts",
+        "start:deploy-contracts": "wait-port anvil:8545 && tsx src/index.ts"
+    },
+    "dependencies": {
+        "viem": "^2.9.9"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.10",
+        "tsx": "^4.19.3",
+        "wait-port": "^1.1.0"
+    }
+}

@@ -267,6 +267,13 @@ const handleMethod = async (
 	walletClient: WalletClient<Transport, Chain, Account>,
 	parsedBody: JsonRpcSchema,
 ) => {
+	if (parsedBody.method === "pimlico_getUserOperationGasPrice") {
+		return await altoBundlerV07.request({
+			method: "pimlico_getUserOperationGasPrice",
+			params: [],
+		});
+	}
+
 	if (parsedBody.method === "pm_sponsorUserOperation") {
 		const params = pmSponsorUserOperationParamsSchema.safeParse(
 			parsedBody.params,

@@ -46,7 +46,7 @@ const main = async () => {
 		return reply.code(200).send({ message: "pong" });
 	});
 
-	await app.listen({ host: "localhost", port: 3000 });
+	await app.listen({ host: "0.0.0.0", port: 3000 });
 };
 
 main();

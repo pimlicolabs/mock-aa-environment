@@ -49,6 +49,7 @@ import {
 } from "./singletonPaymasters";
 
 const handlePmSponsor = async ({
+	entryPoint,
 	userOperation,
 	paymasterMode,
 	bundler,
@@ -57,6 +58,7 @@ const handlePmSponsor = async ({
 	paymasterSigner,
 	estimateGas,
 }: {
+	entryPoint: Address;
 	userOperation: UserOperation;
 	paymasterMode: PaymasterMode;
 	bundler: BundlerClient;
@@ -65,7 +67,7 @@ const handlePmSponsor = async ({
 	paymasterSigner: WalletClient<Transport, Chain, Account>;
 	estimateGas: boolean;
 }) => {
-	const is06 = paymaster === entryPoint06Address;
+	const is06 = entryPoint === entryPoint06Address;
 
 	let op = {
 		...userOperation,
@@ -80,6 +82,7 @@ const handlePmSponsor = async ({
 		try {
 			const gasEstimates = await bundler.estimateUserOperationGas({
 				...op,
+				entryPointAddress: entryPoint,
 			});
 
 			op = {
@@ -182,6 +185,7 @@ const handleMethod = async ({
 		validateEntryPoint(entryPoint);
 
 		return await handlePmSponsor({
+			entryPoint,
 			userOperation,
 			paymasterMode: { mode: "verifying" },
 			bundler,

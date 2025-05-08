@@ -16,7 +16,7 @@ services:
 
   mock-paymaster:
     build:
-      context: ./mock-singleton-paymaster
+      context: ./mock-verifying-paymaster
       dockerfile: Dockerfile
     ports: [ "3000:3000" ]
     environment:

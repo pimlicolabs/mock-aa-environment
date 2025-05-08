@@ -25,8 +25,8 @@ import {
 	getSingletonPaymaster07Address,
 	getSingletonPaymaster08Address,
 	sponsorshipIcon,
-} from "./constants.js";
-import { erc20Address } from "./helpers/erc20-utils.js";
+} from "./constants";
+import { erc20Address } from "./helpers/erc20-utils";
 import {
 	InternalBundlerError,
 	type JsonRpcSchema,
@@ -37,16 +37,16 @@ import {
 	pmGetPaymasterData,
 	pmGetPaymasterStubDataParamsSchema,
 	pmSponsorUserOperationParamsSchema,
-} from "./helpers/schema.js";
+} from "./helpers/schema";
 import {
 	type PaymasterMode,
 	isTokenSupported,
 	maxBigInt,
-} from "./helpers/utils.js";
+} from "./helpers/utils";
 import {
 	getDummyPaymasterData,
 	getSignedPaymasterData,
-} from "./singletonPaymasters.js";
+} from "./singletonPaymasters";
 
 const handlePmSponsor = async ({
 	userOperation,

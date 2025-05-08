@@ -3,10 +3,10 @@ import Fastify from "fastify";
 import { http, createPublicClient } from "viem";
 import { createBundlerClient } from "viem/account-abstraction";
 import { foundry } from "viem/chains";
-import { deployErc20Token } from "./helpers/erc20-utils.js";
-import { getAnvilWalletClient } from "./helpers/utils.js";
-import { createRpcHandler } from "./relay.js";
-import { deployPaymasters } from "./singletonPaymasters.js";
+import { deployErc20Token } from "./helpers/erc20-utils";
+import { getAnvilWalletClient } from "./helpers/utils";
+import { createRpcHandler } from "./relay";
+import { deployPaymasters } from "./singletonPaymasters";
 
 const main = async () => {
 	const app = Fastify({});

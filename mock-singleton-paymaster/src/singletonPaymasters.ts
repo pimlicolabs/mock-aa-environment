@@ -24,13 +24,13 @@ import {
 	getSingletonPaymaster07InitCode,
 	getSingletonPaymaster08Address,
 	getSingletonPaymaster08InitCode,
-} from "./constants.js";
+} from "./constants";
 import {
 	singletonPaymaster06Abi,
 	singletonPaymaster07Abi,
 	singletonPaymaster08Abi,
-} from "./helpers/abi.js";
-import type { PaymasterMode } from "./helpers/utils.js";
+} from "./helpers/abi";
+import type { PaymasterMode } from "./helpers/utils";
 
 export const getDummyPaymasterData = ({
 	is06,

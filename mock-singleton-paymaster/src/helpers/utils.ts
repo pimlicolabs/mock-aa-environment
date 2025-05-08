@@ -11,8 +11,8 @@ import {
 } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
-import { erc20Address } from "./erc20-utils.js";
-import { RpcError, ValidationErrors } from "./schema.js";
+import { erc20Address } from "./erc20-utils";
+import { RpcError, ValidationErrors } from "./schema";
 
 /// Returns the bigger of two BigInts.
 export const maxBigInt = (a: bigint, b: bigint) => {
@@ -24,10 +24,10 @@ export const getPublicClient = (
 ): PublicClient<Transport, Chain> => {
 	const transport = http(anvilRpc, {
 		// onFetchRequest: async (req) => {
-		//     console.log(await req.json(), "request")
+		//     console.log(await reqon(), "request")
 		// }
 		//onFetchResponse: async (response) => {
-		//    console.log(await response.clone().json(), "response")
+		//    console.log(await response.clone()on(), "response")
 		//}
 	});
 

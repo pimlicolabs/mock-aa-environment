@@ -1,5 +1,5 @@
 import { type Hex, getAddress } from "viem";
-import { type infer as zodInfer, z } from "zod";
+import { z, type infer as zodInfer } from "zod";
 
 export enum ValidationErrors {
 	InvalidFields = -32602,
@@ -229,13 +229,23 @@ const eip7677UserOperationSchema = z.union([
 	eip7677UserOperationSchemaV7,
 ]);
 
+const paymasterContextSchema = z.union([
+	z.object({ token: addressSchema }),
+	z.object({
+		sponsorshipPolicyId: z.string().optional(),
+		validForSeconds: z.number().optional(),
+		meta: z.record(z.string(), z.string()).optional(),
+	}),
+	z.null(),
+]);
+
 export const pmGetPaymasterData = z
 	.union([
 		z.tuple([
 			eip7677UserOperationSchema,
 			addressSchema,
 			hexNumberSchema,
-			z.union([z.object({}), z.null()]),
+			paymasterContextSchema.nullable(),
 		]),
 		z.tuple([eip7677UserOperationSchema, addressSchema, hexNumberSchema]),
 	])
@@ -249,13 +259,21 @@ export const pmGetPaymasterStubDataParamsSchema = z
 			eip7677UserOperationSchema,
 			addressSchema,
 			hexNumberSchema,
-			z.union([z.object({}), z.null()]),
+			paymasterContextSchema.nullable(),
 		]),
 		z.tuple([eip7677UserOperationSchema, addressSchema, hexNumberSchema]),
 	])
 	.transform((val) => {
 		return [val[0], val[1], val[2], val[3] ?? null] as const;
 	});
+
+export const pimlicoGetTokenQuotesSchema = z.tuple([
+	z.object({
+		tokens: z.array(addressSchema),
+	}),
+	addressSchema, // entryPoint
+	hexNumberSchema,
+]);
 
 export type UserOperationV7 = zodInfer<typeof userOperationSchemaPaymasterV7>;
 export type UserOperationV6 = zodInfer<typeof userOperationSchemaPaymasterV6>;

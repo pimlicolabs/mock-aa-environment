@@ -2,7 +2,7 @@
     "name": "mock-paymaster",
     "private": true,
     "scripts": {
-        "start": "wait-port anvil:8545 && ts-node src/index.ts"
+        "start": "wait-port anvil:8545 && tsx src/index.ts"
     },
     "dependencies": {
         "@fastify/cors": "^9.0.1",
@@ -17,7 +17,7 @@
     "devDependencies": {
         "@biomejs/biome": "^1.9.4",
         "@types/node": "^20.12.4",
-        "ts-node": "^10.9.2",
+        "tsx": "^4.19.4",
         "wait-port": "^1.0.4"
     }
 }

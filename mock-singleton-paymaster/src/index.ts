@@ -9,6 +9,7 @@ import { createRpcHandler } from "./relay";
 import { deployPaymasters } from "./singletonPaymasters";
 
 const main = async () => {
+	console.log("Starting mock singleton paymaster...");
 	const app = Fastify({});
 	const anvilRpc = process.env.ANVIL_RPC as string;
 	const altoRpc = process.env.ALTO_RPC as string;

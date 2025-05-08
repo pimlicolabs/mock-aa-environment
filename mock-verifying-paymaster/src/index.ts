@@ -1,46 +1,45 @@
 import cors from "@fastify/cors";
 import Fastify from "fastify";
-import { ENTRYPOINT_ADDRESS_V06, ENTRYPOINT_ADDRESS_V07 } from "permissionless";
-import { createPimlicoBundlerClient } from "permissionless/clients/pimlico";
-import { http } from "viem";
-import { getAnvilWalletClient, getChain } from "./helpers/utils";
-import {
-	setupVerifyingPaymasterV06,
-	setupVerifyingPaymasterV07,
-} from "./helpers/verifyingPaymasters";
+import { http, createPublicClient } from "viem";
+import { createBundlerClient } from "viem/account-abstraction";
+import { foundry } from "viem/chains";
+import { deployErc20Token } from "./helpers/erc20-utils";
+import { getAnvilWalletClient } from "./helpers/utils";
 import { createRpcHandler } from "./relay";
+import { deployPaymasters } from "./singletonPaymasters";
 
 const main = async () => {
-	const walletClient = await getAnvilWalletClient();
-	const verifyingPaymasterV07 = await setupVerifyingPaymasterV07(walletClient);
-	const verifyingPaymasterV06 = await setupVerifyingPaymasterV06(walletClient);
-
-	const altoBundlerV07 = createPimlicoBundlerClient({
-		chain: await getChain(),
-		transport: http(process.env.ALTO_RPC),
-		entryPoint: ENTRYPOINT_ADDRESS_V07,
-	});
-
-	const altoBundlerV06 = createPimlicoBundlerClient({
-		chain: await getChain(),
-		transport: http(process.env.ALTO_RPC),
-		entryPoint: ENTRYPOINT_ADDRESS_V06,
-	});
-
+	console.log("Starting mock singleton paymaster...");
 	const app = Fastify({});
+	const anvilRpc = process.env.ANVIL_RPC as string;
+	const altoRpc = process.env.ALTO_RPC as string;
+
+	const walletClient = getAnvilWalletClient({
+		anvilRpc,
+		addressIndex: 1,
+	});
+	const publicClient = createPublicClient({
+		transport: http(anvilRpc),
+		chain: foundry,
+	});
+	const bundler = createBundlerClient({
+		chain: foundry,
+		transport: http(altoRpc),
+	});
+
+	await deployPaymasters({ walletClient, publicClient });
+	await deployErc20Token(walletClient, publicClient);
 
 	app.register(cors, {
 		origin: "*",
 		methods: ["POST", "GET", "OPTIONS"],
 	});
 
-	const rpcHandler = createRpcHandler(
-		altoBundlerV07,
-		altoBundlerV06,
-		verifyingPaymasterV07,
-		verifyingPaymasterV06,
-		walletClient,
-	);
+	const rpcHandler = createRpcHandler({
+		bundler,
+		publicClient,
+		paymasterSigner: walletClient,
+	});
 	app.post("/", {}, rpcHandler);
 
 	app.get("/ping", async (_request, reply) => {

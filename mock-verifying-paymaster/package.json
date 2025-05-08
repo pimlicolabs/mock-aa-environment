@@ -7,14 +7,15 @@
     "dependencies": {
         "@fastify/cors": "^9.0.1",
         "fastify": "^4.26.2",
-        "permissionless": "^0.1.0",
+        "permissionless": "^0.2.45",
         "tslib": "^2.6.2",
         "typescript": "5.4.2",
-        "viem": "2.7.12",
+        "viem": "^2.29.0",
         "zod": "^3.22.4",
         "zod-validation-error": "^3.0.3"
     },
     "devDependencies": {
+        "@biomejs/biome": "^1.9.4",
         "@types/node": "^20.12.4",
         "ts-node": "^10.9.2",
         "wait-port": "^1.0.4"

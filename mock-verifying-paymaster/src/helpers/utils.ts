@@ -1,54 +1,77 @@
 import {
 	http,
-	createWalletClient,
+	type Account,
+	type Address,
+	type Chain,
+	type PublicClient,
+	type Transport,
+	type WalletClient,
 	createPublicClient,
-	defineChain,
+	createWalletClient,
 } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
+import { foundry } from "viem/chains";
+import { erc20Address } from "./erc20-utils";
+import { RpcError, ValidationErrors } from "./schema";
 
 /// Returns the bigger of two BigInts.
 export const maxBigInt = (a: bigint, b: bigint) => {
 	return a > b ? a : b;
 };
 
-export const getAnvilWalletClient = async () => {
-	const account = mnemonicToAccount(
-		"test test test test test test test test test test test junk",
-		{
-			/* avoid nonce error with index 0 when deploying ep contracts. */
-			addressIndex: 1,
-		},
-	);
-
-	const walletClient = createWalletClient({
-		account,
-		chain: await getChain(),
-		transport: http(process.env.ANVIL_RPC),
+export const getPublicClient = (
+	anvilRpc: string,
+): PublicClient<Transport, Chain> => {
+	const transport = http(anvilRpc, {
+		// onFetchRequest: async (req) => {
+		//     console.log(await reqon(), "request")
+		// }
+		//onFetchResponse: async (response) => {
+		//    console.log(await response.clone()on(), "response")
+		//}
 	});
 
-	return walletClient;
+	return createPublicClient({
+		chain: foundry,
+		transport: transport,
+		pollingInterval: 100,
+	});
 };
 
-export const getChain = async () => {
-	const tempClient = createPublicClient({
-		transport: http(process.env.ANVIL_RPC),
-	});
-
-	const chain = defineChain({
-		id: await tempClient.getChainId(),
-		name: "chain",
-		nativeCurrency: {
-			name: "ETH",
-			symbol: "ETH",
-			decimals: 18,
-		},
-		rpcUrls: {
-			default: {
-				http: [],
-				webSocket: undefined,
+export const getAnvilWalletClient = ({
+	addressIndex,
+	anvilRpc,
+}: { addressIndex: number; anvilRpc: string }): WalletClient<
+	Transport,
+	Chain,
+	Account
+> => {
+	return createWalletClient({
+		account: mnemonicToAccount(
+			"test test test test test test test test test test test junk",
+			{
+				addressIndex,
 			},
-		},
+		),
+		chain: foundry,
+		transport: http(anvilRpc),
 	});
-
-	return chain;
 };
+
+export const isTokenSupported = async (token: Address) => {
+	if (token !== erc20Address) {
+		throw new RpcError(
+			"Token is not supported",
+			ValidationErrors.InvalidFields,
+		);
+	}
+};
+
+export type PaymasterMode =
+	| {
+			mode: "verifying";
+	  }
+	| {
+			mode: "erc20";
+			token: Address;
+	  };

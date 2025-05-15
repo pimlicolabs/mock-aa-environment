@@ -8,9 +8,9 @@ import {
 	type WalletClient,
 	createPublicClient,
 	createWalletClient,
+	defineChain,
 } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
-import { foundry } from "viem/chains";
 import { erc20Address } from "./erc20-utils";
 import { RpcError, ValidationErrors } from "./schema";
 
@@ -19,9 +19,33 @@ export const maxBigInt = (a: bigint, b: bigint) => {
 	return a > b ? a : b;
 };
 
-export const getPublicClient = (
+export const getChain = async () => {
+	const tempClient = createPublicClient({
+		transport: http(process.env.ANVIL_RPC),
+	});
+
+	const chain = defineChain({
+		id: await tempClient.getChainId(),
+		name: "chain",
+		nativeCurrency: {
+			name: "ETH",
+			symbol: "ETH",
+			decimals: 18,
+		},
+		rpcUrls: {
+			default: {
+				http: [],
+				webSocket: undefined,
+			},
+		},
+	});
+
+	return chain;
+};
+
+export const getPublicClient = async (
 	anvilRpc: string,
-): PublicClient<Transport, Chain> => {
+): Promise<PublicClient<Transport, Chain>> => {
 	const transport = http(anvilRpc, {
 		// onFetchRequest: async (req) => {
 		//     console.log(await reqon(), "request")
@@ -32,19 +56,17 @@ export const getPublicClient = (
 	});
 
 	return createPublicClient({
-		chain: foundry,
+		chain: await getChain(),
 		transport: transport,
 		pollingInterval: 100,
 	});
 };
 
-export const getAnvilWalletClient = ({
+export const getAnvilWalletClient = async ({
 	addressIndex,
 	anvilRpc,
-}: { addressIndex: number; anvilRpc: string }): WalletClient<
-	Transport,
-	Chain,
-	Account
+}: { addressIndex: number; anvilRpc: string }): Promise<
+	WalletClient<Transport, Chain, Account>
 > => {
 	return createWalletClient({
 		account: mnemonicToAccount(
@@ -53,7 +75,7 @@ export const getAnvilWalletClient = ({
 				addressIndex,
 			},
 		),
-		chain: foundry,
+		chain: await getChain(),
 		transport: http(anvilRpc),
 	});
 };

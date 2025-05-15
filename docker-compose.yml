@@ -1,8 +1,8 @@
 services:
   anvil:
-    image: ghcr.io/foundry-rs/foundry:nightly-c4a984fbf2c48b793c8cd53af84f56009dd1070c
+    image: ghcr.io/foundry-rs/foundry:nightly-776897b169e17117be345bf4a226e093ca768c17
     ports: [ "8545:8545" ]
-    entrypoint: [ "anvil", "--host", "0.0.0.0", "--block-time", "0.1", "--silent"]
+    entrypoint: [ "anvil", "--host", "0.0.0.0", "--block-time", "0.1", "--silent", "--hardfork", "prague"]
     # Uncomment this if you want to use a fork
     #entrypoint: [ "anvil", "--chain-id", "1", "--fork-url", "http://your_node:845", "--host", "0.0.0.0", "--block-time", "0.1", "--silent"]
     platform: linux/amd64

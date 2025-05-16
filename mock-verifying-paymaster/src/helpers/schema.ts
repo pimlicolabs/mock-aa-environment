@@ -144,11 +144,6 @@ export const jsonRpcSchema = z
 	})
 	.strict();
 
-export const pmSponsorUserOperationParamsSchema = z.tuple([
-	z.union([userOperationSchemaPaymasterV6, userOperationSchemaPaymasterV7]),
-	addressSchema,
-]);
-
 const eip7677UserOperationSchemaV6 = z
 	.object({
 		sender: addressSchema,
@@ -238,6 +233,22 @@ const paymasterContextSchema = z.union([
 	}),
 	z.null(),
 ]);
+
+export const pmSponsorUserOperationParamsSchema = z
+	.union([
+		z.tuple([
+			z.union([userOperationSchemaPaymasterV6, userOperationSchemaPaymasterV7]),
+			addressSchema,
+		]),
+		z.tuple([
+			z.union([userOperationSchemaPaymasterV6, userOperationSchemaPaymasterV7]),
+			addressSchema,
+			paymasterContextSchema.nullable(),
+		]),
+	])
+	.transform((val) => {
+		return [val[0], val[1], val[2] ?? null] as const;
+	});
 
 export const pmGetPaymasterData = z
 	.union([

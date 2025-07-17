@@ -1,6 +1,6 @@
 services:
   anvil:
-    image: ghcr.io/foundry-rs/foundry:nightly-776897b169e17117be345bf4a226e093ca768c17
+    image: ghcr.io/foundry-rs/foundry
     ports: [ "8545:8545" ]
     entrypoint: [ "anvil", "--host", "0.0.0.0", "--block-time", "0.1", "--silent", "--hardfork", "prague"]
     # Uncomment this if you want to use a fork
@@ -29,7 +29,7 @@ services:
         condition: service_completed_successfully
 
   alto:
-    build: https://github.com/pimlicolabs/alto.git
+    image: ghcr.io/pimlicolabs/alto:latest
     ports: [ "4337:4337" ]
     environment:
       - ANVIL_RPC=http://anvil:8545

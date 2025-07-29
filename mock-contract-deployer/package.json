@@ -3,7 +3,7 @@
     "private": true,
     "scripts": {
         "start": "pnpm run start:deploy-contracts",
-        "start:deploy-contracts": "wait-port anvil:8545 && tsx src/index.ts"
+        "start:deploy-contracts": "tsx src/helpers/wait-anvil.ts && tsx src/index.ts"
     },
     "dependencies": {
         "viem": "^2.9.9"

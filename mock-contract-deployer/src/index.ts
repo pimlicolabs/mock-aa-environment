@@ -30,6 +30,7 @@ import {
 	KERNEL_V07_FACTORY_V3_1_CREATECALL,
 	KERNEL_KERNEL_V3_3_FACTORY_CREATECALL,
 	KERNEL_KERNEL_V3_3_DELEGATION_CREATECALL,
+	KERNEL_V3_3_ECDSA_VALIDATOR_CREATECALL,
 	LIGHT_ACCOUNT_FACTORY_V110_CREATECALL,
 	SAFE_MULTI_SEND_CALL_ONLY_CREATECALL,
 	SAFE_MULTI_SEND_CREATECALL,
@@ -43,6 +44,7 @@ import {
 	SIMPLE_ACCOUNT_FACTORY_V06_CREATECALL,
 	SIMPLE_ACCOUNT_FACTORY_V07_CREATECALL,
 	SIMPLE_ACCOUNT_FACTORY_V08_CREATECALL,
+	SIMPLE_7702_ACCOUNT_IMPLEMENTATION_V08_CREATECALL,
 } from "./constants";
 
 const DETERMINISTIC_DEPLOYER = "0x4e59b44847b379578588920ca78fbf26c0b4956c";
@@ -157,6 +159,18 @@ const main = async () => {
 			chain,
 		})
 		.then(() => console.log("[V0.8 CORE] Deploying EntryPoint"));
+
+	walletClient
+		.sendTransaction({
+			to: DETERMINISTIC_DEPLOYER,
+			data: SIMPLE_7702_ACCOUNT_IMPLEMENTATION_V08_CREATECALL,
+			gas: 15_000_000n,
+			nonce: nonce++,
+			chain,
+		})
+		.then(() =>
+			console.log("[V0.8 CORE] Deploying Simple7702AccountImplementation"),
+		);
 
 	walletClient
 		.sendTransaction({
@@ -459,6 +473,16 @@ const main = async () => {
 	walletClient
 		.sendTransaction({
 			to: DETERMINISTIC_DEPLOYER,
+			data: KERNEL_V3_3_ECDSA_VALIDATOR_CREATECALL,
+			gas: 15_000_000n,
+			nonce: nonce++,
+			chain,
+		})
+		.then(() => console.log("[KERNEL] Deploying KERNEL V3.3 ECDSA VALIDATOR"));
+
+	walletClient
+		.sendTransaction({
+			to: DETERMINISTIC_DEPLOYER,
 			data: KERNEL_KERNEL_V3_3_FACTORY_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
@@ -600,6 +624,7 @@ const main = async () => {
 		"0xe6Cae83BdE06E4c305530e199D7217f42808555B", // Simple7702AccountImplementation v0.8.0
 		"0x2577507b78c2008ff367261cb6285d44ba5ef2e9", // Kernel v3.3.0 Factory
 		"0xd6CEDDe84be40893d153Be9d467CD6aD37875b28", // Kernel v3.3.0 Delegation
+		"0x845ADb2C711129d4f3966735eD98a9F09fC4cE57", // Kernel v3.3.0 ECDSA Validator
 	]);
 };
 

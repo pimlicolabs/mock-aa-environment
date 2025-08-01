@@ -1,4 +1,4 @@
-import { type Hex, getAddress } from "viem";
+import { type Hex, getAddress, pad } from "viem";
 import { z, type infer as zodInfer } from "zod";
 
 export enum ValidationErrors {
@@ -60,6 +60,68 @@ export const hexDataSchema = z
 	.regex(hexDataPattern, { message: "not valid hex data" })
 	.transform((val) => val.toLowerCase() as Hex);
 
+const signedAuthorizationSchema = z.union([
+	z.object({
+		contractAddress: addressSchema,
+		chainId: hexNumberSchema.transform((val) => Number(val)),
+		nonce: hexNumberSchema.transform((val) => Number(val)),
+		r: hexDataSchema.transform((val) => val as Hex),
+		s: hexDataSchema.transform((val) => val as Hex),
+		v: hexNumberSchema.optional(),
+		yParity: hexNumberSchema.transform((val) => Number(val)),
+	}),
+	z.object({
+		address: addressSchema,
+		chainId: hexNumberSchema.transform((val) => Number(val)),
+		nonce: hexNumberSchema.transform((val) => Number(val)),
+		r: hexDataSchema.transform((val) => val as Hex),
+		s: hexDataSchema.transform((val) => val as Hex),
+		v: hexNumberSchema.optional(),
+		yParity: hexNumberSchema.transform((val) => Number(val)),
+	}),
+]);
+
+const partialAuthorizationSchema = z.union([
+	z.object({
+		contractAddress: addressSchema,
+		chainId: hexNumberSchema
+			.optional()
+			.transform((val) => (val ? Number(val) : 1)),
+		nonce: hexNumberSchema
+			.optional()
+			.transform((val) => (val ? Number(val) : 0)),
+		r: hexDataSchema
+			.optional()
+			.transform((val) => (val as Hex) ?? pad("0x", { size: 32 })),
+		s: hexDataSchema
+			.optional()
+			.transform((val) => (val as Hex) ?? pad("0x", { size: 32 })),
+		v: hexNumberSchema.optional(),
+		yParity: hexNumberSchema
+			.optional()
+			.transform((val) => (val ? Number(val) : 0)),
+	}),
+	z.object({
+		address: addressSchema,
+		chainId: hexNumberSchema
+			.optional()
+			.transform((val) => (val ? Number(val) : 1)),
+		nonce: hexNumberSchema
+			.optional()
+			.transform((val) => (val ? Number(val) : 0)),
+		r: hexDataSchema
+			.optional()
+			.transform((val) => (val as Hex) ?? pad("0x", { size: 32 })),
+		s: hexDataSchema
+			.optional()
+			.transform((val) => (val as Hex) ?? pad("0x", { size: 32 })),
+		v: hexNumberSchema.optional(),
+		yParity: hexNumberSchema
+			.optional()
+			.transform((val) => (val ? Number(val) : 0)),
+	}),
+]);
+
 const userOperationSchemaPaymasterV6 = z
 	.object({
 		sender: addressSchema,
@@ -71,28 +133,41 @@ const userOperationSchemaPaymasterV6 = z
 		preVerificationGas: hexNumberSchema.default(1n),
 		maxPriorityFeePerGas: hexNumberSchema,
 		maxFeePerGas: hexNumberSchema,
-		paymasterAndData: hexDataSchema
-			.nullable()
+		paymasterAndData: z
+			.union([hexDataSchema, z.literal("")])
 			.optional()
-			.transform((val) => val ?? undefined),
-		signature: hexDataSchema.optional().transform((val) => {
-			if (val === undefined) {
-				return "0x";
-			}
-			return val;
-		}),
+			.transform((val) => {
+				if (val === "" || val === undefined) {
+					return "0x";
+				}
+				return val;
+			}),
+		signature: z
+			.union([hexDataSchema, z.literal("")])
+			.optional()
+			.transform((val) => {
+				if (val === "" || val === undefined) {
+					return "0x";
+				}
+				return val;
+			}),
+		eip7702Auth: signedAuthorizationSchema.optional().nullable(),
 	})
 	.strict()
-	.transform((val) => {
-		return val;
-	});
+	.transform((val) => val);
 
 const userOperationSchemaPaymasterV7 = z
 	.object({
 		sender: addressSchema,
 		nonce: hexNumberSchema,
-		factory: addressSchema.optional().transform((val) => val ?? undefined),
-		factoryData: hexDataSchema.optional().transform((val) => val ?? undefined),
+		factory: addressSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? undefined),
+		factoryData: hexDataSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? undefined),
 		callData: hexDataSchema,
 		callGasLimit: hexNumberSchema.default(1n),
 		verificationGasLimit: hexNumberSchema.default(1n),
@@ -121,6 +196,53 @@ const userOperationSchemaPaymasterV7 = z
 			}
 			return val;
 		}),
+		eip7702Auth: signedAuthorizationSchema.optional().nullable(),
+	})
+	.strict()
+	.transform((val) => val);
+
+const userOperationSchemaPaymasterV8 = z
+	.object({
+		sender: addressSchema,
+		nonce: hexNumberSchema,
+		factory: z
+			.union([addressSchema, z.literal("0x7702")])
+			.nullable()
+			.optional()
+			.transform((val) => val ?? undefined),
+		factoryData: hexDataSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? undefined),
+		callData: hexDataSchema,
+		callGasLimit: hexNumberSchema.default(1n),
+		verificationGasLimit: hexNumberSchema.default(1n),
+		preVerificationGas: hexNumberSchema.default(1n),
+		maxFeePerGas: hexNumberSchema,
+		maxPriorityFeePerGas: hexNumberSchema,
+		paymaster: addressSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? undefined),
+		paymasterVerificationGasLimit: hexNumberSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? undefined),
+		paymasterPostOpGasLimit: hexNumberSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? undefined),
+		paymasterData: hexDataSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? undefined),
+		signature: hexDataSchema.optional().transform((val) => {
+			if (val === undefined) {
+				return "0x";
+			}
+			return val;
+		}),
+		eip7702Auth: signedAuthorizationSchema.optional().nullable(),
 	})
 	.strict()
 	.transform((val) => {
@@ -167,6 +289,7 @@ const eip7677UserOperationSchemaV6 = z
 			.transform((_) => {
 				return "0x" as Hex;
 			}),
+		eip7702Auth: signedAuthorizationSchema.optional().nullable(),
 	})
 	.strict()
 	.transform((val) => {
@@ -213,15 +336,66 @@ const eip7677UserOperationSchemaV7 = z
 			}
 			return val;
 		}),
+		eip7702Auth: signedAuthorizationSchema.optional().nullable(),
 	})
 	.strict()
 	.transform((val) => {
 		return val;
 	});
 
+const eip7677UserOperationSchemaV8 = z
+	.object({
+		sender: addressSchema,
+		nonce: hexNumberSchema,
+		factory: z
+			.union([addressSchema, z.literal("0x7702")])
+			.nullable()
+			.optional()
+			.transform((val) => val ?? null),
+		factoryData: hexDataSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? null),
+		callData: hexDataSchema,
+		callGasLimit: hexNumberSchema,
+		verificationGasLimit: hexNumberSchema,
+		preVerificationGas: hexNumberSchema,
+		maxFeePerGas: hexNumberSchema,
+		maxPriorityFeePerGas: hexNumberSchema,
+		paymaster: addressSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? null),
+		paymasterVerificationGasLimit: hexNumberSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? null),
+		paymasterPostOpGasLimit: hexNumberSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? null),
+		paymasterData: hexDataSchema
+			.nullable()
+			.optional()
+			.transform((val) => val ?? null),
+		signature: hexDataSchema.optional().transform((val) => {
+			return val ?? "0x";
+		}),
+		eip7702Auth: partialAuthorizationSchema.optional().nullable(),
+	})
+	.strict()
+	.transform((val) => val);
+
 const eip7677UserOperationSchema = z.union([
 	eip7677UserOperationSchemaV6,
 	eip7677UserOperationSchemaV7,
+	eip7677UserOperationSchemaV8,
+]);
+
+const userOperationSchemaPaymaster = z.union([
+	userOperationSchemaPaymasterV6,
+	userOperationSchemaPaymasterV7,
+	userOperationSchemaPaymasterV8,
 ]);
 
 const paymasterContextSchema = z.union([
@@ -236,12 +410,9 @@ const paymasterContextSchema = z.union([
 
 export const pmSponsorUserOperationParamsSchema = z
 	.union([
+		z.tuple([userOperationSchemaPaymaster, addressSchema]),
 		z.tuple([
-			z.union([userOperationSchemaPaymasterV6, userOperationSchemaPaymasterV7]),
-			addressSchema,
-		]),
-		z.tuple([
-			z.union([userOperationSchemaPaymasterV6, userOperationSchemaPaymasterV7]),
+			userOperationSchemaPaymaster,
 			addressSchema,
 			paymasterContextSchema.nullable(),
 		]),
@@ -286,6 +457,4 @@ export const pimlicoGetTokenQuotesSchema = z.tuple([
 	hexNumberSchema,
 ]);
 
-export type UserOperationV7 = zodInfer<typeof userOperationSchemaPaymasterV7>;
-export type UserOperationV6 = zodInfer<typeof userOperationSchemaPaymasterV6>;
 export type JsonRpcSchema = zodInfer<typeof jsonRpcSchema>;

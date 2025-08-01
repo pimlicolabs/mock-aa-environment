@@ -144,7 +144,10 @@ const main = async () => {
 		process.exit(0);
 	}
 
-	let nonce = 0;
+	// Get current nonce from chain to support pre-existing state
+	let nonce = await client.getTransactionCount({
+		address: walletClient.account.address,
+	});
 
 	walletClient
 		.sendTransaction({

@@ -5,6 +5,8 @@ Docker containers to hold mock singleton paymaster + helpers to setup local AA e
 
 Run `docker-compose up -d` to start the containers.
 
+For a more indepth tutorial, checkout this page: https://docs.pimlico.io/guides/how-to/testing/docker
+
 ## Contract Deployments
 
 This environment will deploy the following contracts:

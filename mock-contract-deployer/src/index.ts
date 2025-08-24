@@ -46,6 +46,7 @@ import {
 	SIMPLE_ACCOUNT_FACTORY_V08_CREATECALL,
 	SIMPLE_7702_ACCOUNT_IMPLEMENTATION_V08_CREATECALL,
 } from "./constants";
+import { anvilMine, sleep } from "./utils"
 
 const DETERMINISTIC_DEPLOYER = "0x4e59b44847b379578588920ca78fbf26c0b4956c";
 const SAFE_SINGLETON_FACTORY = "0x914d7Fec6aaC8cd542e72Bca78B30650d45643d7";
@@ -507,10 +508,12 @@ const main = async () => {
 
 	let onchainNonce = 0;
 	do {
+		// Mine a new block including all pending txs so the nonce syncs
+		await anvilMine(1);
 		onchainNonce = await client.getTransactionCount({
 			address: walletClient.account.address,
 		});
-		await new Promise((resolve) => setTimeout(resolve, 500));
+		await sleep(500);
 	} while (onchainNonce !== nonce);
 
 	// ==== SETUP KERNEL V0.6 CONTRACTS ==== //

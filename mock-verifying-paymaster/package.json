@@ -2,17 +2,11 @@
     "name": "mock-paymaster",
     "private": true,
     "scripts": {
-        "start": "tsx src/helpers/wait-anvil.ts && tsx src/index.ts"
+        "start": "wait-port 0.0.0.0:8545 && tsx src/index.ts"
     },
     "dependencies": {
-        "@fastify/cors": "^9.0.1",
-        "fastify": "^4.26.2",
-        "permissionless": "^0.2.45",
-        "tslib": "^2.6.2",
-        "typescript": "5.4.2",
-        "viem": "^2.29.0",
-        "zod": "^3.22.4",
-        "zod-validation-error": "^3.0.3"
+        "@pimlico/mock-paymaster": "^0.0.5",
+        "prool": "^0.0.25"
     },
     "devDependencies": {
         "@biomejs/biome": "^1.9.4",

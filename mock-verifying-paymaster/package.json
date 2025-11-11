@@ -2,7 +2,7 @@
     "name": "mock-paymaster",
     "private": true,
     "scripts": {
-        "start": "wait-port anvil:8545 && tsx src/index.ts"
+        "start": "tsx src/wait-anvil.ts && tsx src/index.ts"
     },
     "dependencies": {
         "@pimlico/mock-paymaster": "^0.0.6",

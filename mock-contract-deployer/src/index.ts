@@ -6,8 +6,14 @@ import {
 	createWalletClient,
 	defineChain,
 	parseEther,
+	getAddress,
+	Chain,
 } from "viem";
-import { mnemonicToAccount } from "viem/accounts";
+import {
+	generatePrivateKey,
+	mnemonicToAccount,
+	privateKeyToAccount,
+} from "viem/accounts";
 import { sendTransaction } from "viem/actions";
 import {
 	BICONOMY_ACCOUNT_V2_LOGIC_CREATECALL,
@@ -46,13 +52,19 @@ import {
 	SIMPLE_ACCOUNT_FACTORY_V08_CREATECALL,
 	SIMPLE_7702_ACCOUNT_IMPLEMENTATION_V08_CREATECALL,
 } from "./constants";
-import { anvilMine, sleep } from "./utils"
+import { sleep } from "./utils";
 
-const DETERMINISTIC_DEPLOYER = "0x4e59b44847b379578588920ca78fbf26c0b4956c";
-const SAFE_SINGLETON_FACTORY = "0x914d7Fec6aaC8cd542e72Bca78B30650d45643d7";
-const BICONOMY_SINGLETON_FACTORY = "0x988C135a1049Ce61730724afD342fb7C56CD2776";
+const DETERMINISTIC_DEPLOYER = getAddress(
+	"0x4e59b44847b379578588920ca78fbf26c0b4956c",
+);
+const SAFE_SINGLETON_FACTORY = getAddress(
+	"0x914d7Fec6aaC8cd542e72Bca78B30650d45643d7",
+);
+const BICONOMY_SINGLETON_FACTORY = getAddress(
+	"0x988C135a1049Ce61730724afD342fb7C56CD2776",
+);
 
-async function getChain(): Promise<ReturnType<typeof defineChain>> {
+async function getChain(): Promise<Chain> {
 	const tempClient = createPublicClient({
 		transport: http(process.env.ANVIL_RPC),
 	});
@@ -77,15 +89,9 @@ async function getChain(): Promise<ReturnType<typeof defineChain>> {
 }
 
 const main = async () => {
-	const chain = await getChain();
-	const walletClient = createWalletClient({
-		account: mnemonicToAccount(
-			"test test test test test test test test test test test junk",
-		),
-		chain,
-		transport: http(process.env.ANVIL_RPC),
-	});
+	const chain: Chain = await getChain();
 
+	// Create clients.
 	const anvilClient = createTestClient({
 		transport: http(process.env.ANVIL_RPC),
 		mode: "anvil",
@@ -95,6 +101,18 @@ const main = async () => {
 	const client = createPublicClient({
 		transport: http(process.env.ANVIL_RPC),
 		chain,
+	});
+
+	const walletClient = createWalletClient({
+		account: privateKeyToAccount(generatePrivateKey()),
+		chain,
+		transport: http(process.env.ANVIL_RPC),
+	});
+
+	// Seed wallet with ETH for deployment.
+	await anvilClient.setBalance({
+		address: walletClient.account.address,
+		value: parseEther("1000"),
 	});
 
 	const verifyDeployed = async (addresses: Address[]) => {
@@ -160,7 +178,6 @@ const main = async () => {
 			data: ENTRY_POINT_V08_CREATECALL,
 			gas: 15_000_000n,
 			nonce: nonce++,
-			chain,
 		})
 		.then(() => console.log("[V0.8 CORE] Deploying EntryPoint"));
 
@@ -509,10 +526,14 @@ const main = async () => {
 	let onchainNonce = 0;
 	do {
 		// Mine a new block including all pending txs so the nonce syncs
-		await anvilMine(1);
+		await anvilClient.mine({ blocks: 1 });
+
+		// Update nonce
 		onchainNonce = await client.getTransactionCount({
 			address: walletClient.account.address,
 		});
+
+		// Sleep for a bit to ensure the nonce is updated
 		await sleep(500);
 	} while (onchainNonce !== nonce);
 

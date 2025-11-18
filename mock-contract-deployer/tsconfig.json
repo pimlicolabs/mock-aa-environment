@@ -1,6 +1,24 @@
 {
-    "extends": "@tsconfig/node22/tsconfig.json",
-    "include": [
-        "src/**/*.ts"
-    ]
+    "compilerOptions": {
+        "outDir": "esm",
+        "target": "esnext",
+        "module": "ESNext",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "preserveConstEnums": true,
+        "removeComments": false,
+        "resolveJsonModule": true,
+        "sourceMap": true,
+        "skipLibCheck": true,
+        "declaration": true,
+        "declarationMap": true,
+        "moduleResolution": "node"
+    },
+    "tsc-alias": {
+        "resolveFullPaths": true,
+    }
 }
+

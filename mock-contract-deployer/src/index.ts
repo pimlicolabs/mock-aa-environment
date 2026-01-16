@@ -130,6 +130,21 @@ const main = async () => {
 
 	if (process.env.SKIP_DEPLOYMENTS) {
 		console.log("Skipping Deployments...");
+
+		// Remove EIP-7702 code delegations from anvil accounts 0-9
+		// This resets them to regular EOAs for testing that fork mainnet.
+		// Most anvil accounst are delegated via 7702 to sweeper accounts, this loop removes them.
+		for (let i = 0; i < 10; i++) {
+			const account = mnemonicToAccount(
+				"test test test test test test test test test test test junk",
+				{ addressIndex: i },
+			);
+			await anvilClient.setCode({
+				address: account.address,
+				bytecode: "0x",
+			});
+		}
+
 		// set nonces to match onchain nonces
 		const promises: any = [];
 

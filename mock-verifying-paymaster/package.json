@@ -5,7 +5,8 @@
         "start": "tsx src/wait-anvil.ts && tsx src/index.ts"
     },
     "dependencies": {
-        "@pimlico/mock-paymaster": "^0.0.6",
+        "@pimlico/mock-paymaster": "^0.0.7",
+        "mock-paymaster": ".",
         "prool": "^0.0.25",
         "zod-validation-error": "^5.0.0"
     },

@@ -143,7 +143,6 @@ const main = async () => {
 				address: account.address,
 				bytecode: "0x",
 			});
-			// Fund account with 10000 ETH
 			await anvilClient.setBalance({
 				address: account.address,
 				value: parseEther("10000"),
